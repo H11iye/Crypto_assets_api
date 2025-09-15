@@ -1,21 +1,22 @@
+# app/service.py
 import requests
 
-BINANCE_API_URL= "https://api.binance.com/api/v3/ticker/price"
+BINANCE_API_URL = "https://api.binance.com/api/v3/ticker/price"
 
-def get_crypto_price(symbol: str, base: str="USDT") -> float:
-    """Fetch the current price of a cryptocurrency from Binance API."""
-
+def get_crypto_price(symbol: str, base: str = "USDT") -> float:
+    """
+    Fetch crypto price from Binance API (default pair: SYMBOL/USDT).
+    Example: get_crypto_price("BTC") → BTCUSDT
+    """
     pair = f"{symbol.upper()}{base.upper()}"
     url = f"{BINANCE_API_URL}?symbol={pair}"
+    response = requests.get(url, timeout=5)
 
-    response = requests.get(url)
     if response.status_code != 200:
-        raise ValueError(f"Error fetching data from Binance API: {response.status_code}")
-    
+        raise ValueError(f"Error fetching {pair} price: {response.text}")
+
     data = response.json()
-
     if "price" not in data:
+        raise ValueError(f"Invalid response for {pair}: {data}")
 
-        raise ValueError(f"Invalid response data: {data}")
-    
     return round(float(data["price"]), 2)
