@@ -33,7 +33,7 @@ jobs:
 
     - name: Run tests
       run: |
-        pytest ./app/tests
+        PYTHONPATH=app pytest app/tests
 
     - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v2
