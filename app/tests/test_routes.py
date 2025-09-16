@@ -12,7 +12,7 @@ def client():
 def test_crypto_endpoint_success(monkeypatch, client):
     #Mock function to simulate successful API response
     def mock_get_crypto_price(symbol):
-        return {"symbol": symbol.upper(), "price": 50000.00}
+        return {"symbol": symbol, "price": 50000.00}
     
     #Patch the real function in service.py 
     from app import service
