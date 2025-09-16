@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify
-from .service import get_crypto_price
+from app.service import get_crypto_price
 
 bp = Blueprint("routes", __name__)
 
