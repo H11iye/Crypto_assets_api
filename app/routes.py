@@ -1,6 +1,6 @@
 # app/routes.py
 from flask import jsonify
-from .service import get_crypto_price
+from app.service import get_crypto_price
 
 def register_routes(app):
     @app.route("/")
