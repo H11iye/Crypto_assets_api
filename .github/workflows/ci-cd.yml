@@ -1,0 +1,61 @@
+name: CI/CD to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  SERVICE_NAME: mcp-crypto-assets-api
+  REGION_ID: ${{ secrets.GCP_REGION }}
+  REPO: mcp-repo
+
+jobs:
+  build-deploy:
+    name: Build and Deploy to Cloud Run
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+    - name: set up python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    
+    - name: Install dependencies
+      run: |
+        pip Install -r Crypto-assets-api/requirements.txt
+
+    - name: Run tests
+      run: |
+        pytest Crypto_assets_api/tests
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+    
+    - name: Configure Docker for Artifact Registry
+      run: gcloud auth configure-docker "${REGION_ID}-docker.pkg.dev" --quiet
+
+    - name: Build Docker image
+      run: |
+        docker build -t "${env.REGION}-docker.pkg.dev/ ${{env.PROJECT_ID}}/ ${{env.REPO}}/${{env.SERVICE_NAME}}:${{ github.sha }}" ./app    
+
+    - name: Push Docker image to Artifact Registry
+      run: |
+        docker push "${env.REGION}-docker.pkg.dev/ ${{env.PROJECT_ID}}/ ${{env.REPO}}/${{env.SERVICE_NAME}}:${{ github.sha }}"
+
+    - name: Deploy to Cloud Run
+      run: |
+        gcloud run deploy "${{env.SERVICE_NAME}}" \
+          --image "${env.REGION}-docker.pkg.dev/ ${{env.PROJECT_ID}}/ ${{env.REPO}}/${{env.SERVICE_NAME}}:${{ github.sha }}" \`
+          --region "${{env.REGION_ID}}" \
+          --platform managed \
+          --allow-unauthenticated
+          
