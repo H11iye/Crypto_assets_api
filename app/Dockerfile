@@ -1,24 +1,32 @@
-#Stage 1: Build dependencies
 FROM python:3.12-slim AS builder
 
 WORKDIR /app
 
-#Install dependencies
-COPY requirements.txt .
-RUN pip install --user --no-cache-dir -r requirements.txt
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential gcc \
+    && rm -rf /var/lib/apt/lists/*
 
-#Stage 2: Runtime the image
+COPY requirements.txt .
+RUN pip install --upgrade pip \
+    && pip install --prefix=/install -r requirements.txt
+
 FROM python:3.12-slim
+
 WORKDIR /app
 
-#Copy installed dependencies from builder stage
-COPY --from=builder /root/.local /root/.local
+# Install curl for healthcheck
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-#Ensure installed binaries are in the PATH
-ENV PATH=/root/.local/bin:$PATH
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
 
-#Copy project files
+COPY --from=builder /install /usr/local
 COPY . .
 
-#Run app with Gunicorn(production WSGI server)
-CMD [ "gunicorn", "-b", "0.0.0.0:8080", "app.main:create_app()" ]
+ENV PYTHONUNBUFFERED=1
+
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers=2", "main:create_app"]
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:8080/health || exit 1
+
+USER appuser

@@ -34,7 +34,7 @@ jobs:
 
     - name: Run tests
       run: |
-        PYTHONPATH=. pytest app/tests
+        pytest app/tests
 
     - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v2
@@ -42,20 +42,20 @@ jobs:
         credentials_json: ${{ secrets.GCP_SA_KEY }}
     
     - name: Configure Docker for Artifact Registry
-      run: gcloud auth configure-docker "${REGION_ID}-docker.pkg.dev" --quiet
+      run: gcloud auth configure-docker "${{ REGION_ID }}-docker.pkg.dev" --quiet
 
     - name: Build Docker image
       run: |
-        docker build -t "${env.REGION}-docker.pkg.dev/ ${{env.PROJECT_ID}}/ ${{env.REPO}}/${{env.SERVICE_NAME}}:${{ github.sha }}" ./app    
+        docker build -t "${{ env.REGION }}-docker.pkg.dev/ ${{ env.PROJECT_ID }}/ ${{ env.REPO }}/${{ env.SERVICE_NAME }}:${{ github.sha }}" ./app    
 
     - name: Push Docker image to Artifact Registry
       run: |
-        docker push "${env.REGION}-docker.pkg.dev/ ${{env.PROJECT_ID}}/ ${{env.REPO}}/${{env.SERVICE_NAME}}:${{ github.sha }}"
+        docker push "${{ env.REGION }}-docker.pkg.dev/ ${{ env.PROJECT_ID }}/ ${{ env.REPO }}/${{ env.SERVICE_NAME }}:${{ github.sha }}"
 
     - name: Deploy to Cloud Run
       run: |
-        gcloud run deploy "${{env.SERVICE_NAME}}" \
-          --image "${env.REGION}-docker.pkg.dev/ ${{env.PROJECT_ID}}/ ${{env.REPO}}/${{env.SERVICE_NAME}}:${{ github.sha }}" \`
-          --region "${{env.REGION_ID}}" \
+        gcloud run deploy "${{ env.SERVICE_NAME }}" \
+          --image "${{ env.REGION }}-docker.pkg.dev/ ${{ env.PROJECT_ID }}/ ${{ env.REPO }}/${{ env.SERVICE_NAME }}:${{ github.sha }}" \`
+          --region "${{ env.REGION_ID }}" \
           --platform managed \
           --allow-unauthenticated
