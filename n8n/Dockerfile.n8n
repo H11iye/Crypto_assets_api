@@ -1,0 +1,6 @@
+FROM n8nio/n8n:1.44.0
+USER root
+RUN apk add --no-cache jq
+
+COPY custom/ /custom/
+USER node
