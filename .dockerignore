@@ -1,37 +1,42 @@
-# Node modules
-node_modules/
-
-# Python virtual environments
+pycache/
+*.py[cod]
+*$py.class
+Virtual-env
 venv/
-.env/
-__pycache__/
-*.pyc
-
-# Build output
-dist/
-build/
-*.log
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Git files
-.git
-.gitignore
-
-# Docker files
-Dockerfile
-docker-compose.yml
-
-# Test and coverage
-coverage/
-*.cover
-*.test.js
-*.spec.js
-
-# Misc
+.env
+.env.*
+IDE
+.vscode/
+.idea/
 *.swp
 *.swo
-.idea/
-.vscode/
+OS
+.DS_Store
+Thumbs.db
+Python packaging
+*.egg-info/
+dist/
+build/
+.wheel/
+Coverage
+htmlcov/
+.coverage
+*.cover
+MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+Node (if you ever add a front-end)
+node_modules/
+n8n uploads
+n8n/.n8n/
+Docker
+*.log
+.git
+.github
+README.md
+helm/
+venv/
+.pytest_cache/
+*.md
+!app/requirements.txt

@@ -1,12 +1,26 @@
-from flask import Flask
-from app.routes import bp as routes_bp
+from fastapi import FastAPI
+from core.config import settings
+from core.logging import setup_logging
+from api import health, crypto_assets
 
-def create_app():
-    app = Flask(__name__)
-    app.register_blueprint(routes_bp)
+setup_logging()
+
+def create_app() -> FastAPI:
+    app = FastAPI(
+        title=settings.app_name,
+        debug=settings.debug)
+    
+    @app.on_event("startup")
+    async def startup(): pass
+
+    @app.on_event("shutdown")
+    async def shutdown(): pass
+
+    app.include_router(health.router)
+    app.include_router(crypto_assets.router, prefix="/v1")
+
     return app
 
-# For local dev
-if __name__ == "__main__":
-    app = create_app()
-    app.run(host="0.0.0.0", port=8080)
+app = create_app()
+
+        

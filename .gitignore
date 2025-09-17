@@ -1,42 +1,34 @@
-# Python
-__pycache__/
+pycache/
 *.py[cod]
-*.pyo
-*.pyd
-*.pyc
-*.env
-*.venv
-env/
+*$py.class
+Virtual-env
 venv/
-ENV/
-build/
-dist/
-*.egg-info/
-*.egg
-
-# VS Code
-.vscode/
-
-# macOS
-.DS_Store
-
-# Logs
-*.log
-
-# Environment variables
 .env
-
-# Test and coverage reports
+.env.*
+IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+OS
+.DS_Store
+Thumbs.db
+Python packaging
+*.egg-info/
+dist/
+build/
+.wheel/
+Coverage
 htmlcov/
 .coverage
-.tox/
-nosetests.xml
-coverage.xml
 *.cover
-*.py,cover
-
-# Jupyter Notebook
-.ipynb_checkpoints/
-
-# System files
-Thumbs.db
+MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+Node (if you ever add a front-end)
+node_modules/
+n8n uploads
+n8n/.n8n/
+Docker
+*.log
