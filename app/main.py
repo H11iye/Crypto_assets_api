@@ -1,26 +1,11 @@
-from fastapi import FastAPI
-from core.config import settings
-from core.logging import setup_logging
-from api import health, crypto_assets
+from flask import Flask
+from .routes import register_routes
 
-setup_logging()
-
-def create_app() -> FastAPI:
-    app = FastAPI(
-        title=settings.app_name,
-        debug=settings.debug)
-    
-    @app.on_event("startup")
-    async def startup(): pass
-
-    @app.on_event("shutdown")
-    async def shutdown(): pass
-
-    app.include_router(health.router)
-    app.include_router(crypto_assets.router, prefix="/v1")
-
+def create_app():
+    app = Flask(__name__)
+    register_routes(app)   # call the function to attach routes
     return app
 
-app = create_app()
-
-        
+if __name__ == "__main__":
+    app = create_app()
+    app.run(host="0.0.0.0", port=8080, debug=True)

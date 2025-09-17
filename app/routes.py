@@ -1,16 +1,15 @@
-from flask import Blueprint, jsonify
-from app.service import get_crypto_price
+from flask import jsonify, request
+from app.services.service import get_crypto_price
 
-bp = Blueprint("routes", __name__)
+def register_routes(app):
+    @app.route("/")
+    def home():
+        return jsonify({"message": "Crypto API is running!"})
 
-@bp.route("/crypto/<symbol>", methods=["GET"])
-def crypto(symbol):
-    data = get_crypto_price(symbol)
-    if data:
-        return jsonify(data), 200
-    return jsonify({"error": "Invalid symbol"}), 404
-
-
-@bp.route("/health", methods=["GET"])
-def health():
-    return jsonify({"status": "ok"}), 200
+    @app.route("/crypto/<symbol>")
+    def crypto_price(symbol):
+        try:
+            price = get_crypto_price(symbol.upper())
+            return jsonify({"symbol": symbol.upper(), "price": price})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 400
