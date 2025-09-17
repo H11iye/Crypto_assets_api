@@ -1,0 +1,16 @@
+# name: CD 
+# on: 
+#   push:
+#     branches: [main]
+  
+# jobs:
+#   deploy:
+#     needs: ci 
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
+#       - name: helm deploy
+#         run: |
+#           helm upgrade --install crypto-assets-api helm/crypto-api \
+#             --set image.tag=${{ github.sha }} \
+#             --wait --timeout=5m
