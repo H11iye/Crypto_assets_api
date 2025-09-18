@@ -11,14 +11,44 @@ services:
     environment:
       - ENV=production
     
+    networks:
+      - backend # Ensure the service is on the backend network
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
     
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+    # logging:
+    #   driver: "json-file"
+    #   options:
+    #     max-size: "10m"
+    #     max-file: "3"
+  n8n:
+    image: n8nio/n8n:latest
+    restart: unless-stopped
+    ports:
+      - "5678:5678"  #n8n default port UI
+    
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=admin
+      - N8N_HOST=n8n.localhost
+      - N8N_PORT=5678
+      - NODE_ENV=production
+    
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+    networks:
+      - backend # Ensure the service is on the backend network
+
+volumes:
+  n8n_data:
+
+networks:
+  backend:
+    driver: bridge
+  
+  
