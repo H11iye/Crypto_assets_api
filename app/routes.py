@@ -1,15 +1,17 @@
-from flask import jsonify, request
+# app/routes.py
+from fastapi import APIRouter, HTTPException
 from app.services.service import get_crypto_price
 
-def register_routes(app):
-    @app.route("/")
-    def home():
-        return jsonify({"message": "Crypto API is running!"})
+router = APIRouter()
 
-    @app.route("/crypto/<symbol>")
-    def crypto_price(symbol):
-        try:
-            price = get_crypto_price(symbol.upper())
-            return jsonify({"symbol": symbol.upper(), "price": price})
-        except Exception as e:
-            return jsonify({"error": str(e)}), 400
+@router.get("/")
+async def home():
+    return {"message": "Crypto API is running!"}
+
+@router.get("/crypto/{symbol}")
+async def crypto_price(symbol: str):
+    try:
+        price = await get_crypto_price(symbol.upper())
+        return {"symbol": symbol.upper(), "price": price}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
