@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
+PORT="${PORT:-8080}"
+
 # Use WEB_CONCURRENCY if set, otherwise auto-calc: (2 * CPU) + 1
 if [ -n "${WEB_CONCURRENCY}" ]; then
   WORKERS="${WEB_CONCURRENCY}"
@@ -10,7 +12,7 @@ fi
 
 exec gunicorn \
   -k uvicorn.workers.UvicornWorker \
-  --bind 0.0.0.0:80 \
+  --bind "0.0.0.0:${PORT}" \
   --workers "$WORKERS" \
   --worker-connections 1000 \
   --timeout 30 \
