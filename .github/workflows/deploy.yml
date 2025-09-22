@@ -25,5 +25,5 @@ jobs:
           chmod +x ./start.sh ./n8n/deploy-n8n.sh
 
       - name: Execute Deployment Scripts
-        run: bash start.sh && bash deploy-n8n.sh
+        run: bash deploy-n8n.sh && bash start.sh
         working-directory: ${{ github.workspace }}
