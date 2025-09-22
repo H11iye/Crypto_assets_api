@@ -21,6 +21,6 @@ jobs:
 
       - name: Run Deployment Script
         run: |
-          echo "${{ secrets.GCP_SA_KEY }}" > .env
+          echo "${{ secrets.ENV_FILE }}" > .env
           chmod +x deploy.sh
           ./deploy-n8n.sh
