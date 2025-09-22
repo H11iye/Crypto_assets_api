@@ -22,5 +22,4 @@ jobs:
       - name: Run Deployment Script
         run: |
           echo "${{ secrets.ENV_FILE }}" > .env
-          chmod +x ./start.sh
-          ./n8n/deploy-n8n.sh
+          chmod +x ./start.sh ./n8n/deploy-n8n.sh
