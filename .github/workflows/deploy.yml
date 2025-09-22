@@ -22,8 +22,7 @@ jobs:
       - name: change the Scripts permission
         run: |
           echo "${{ secrets.ENV_FILE }}" > .env
-          chmod +x ./start.sh
-          chmod +x ./n8n/deploy-n8n.sh
+          chmod +x ./start.sh ./n8n/deploy-n8n.sh
 
       - name: Execute Deployment Scripts
         run: bash deploy-n8n.sh && bash start.sh
