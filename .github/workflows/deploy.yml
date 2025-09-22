@@ -19,9 +19,11 @@ jobs:
           service_account_key: ${{ secrets.GCP_SA_KEY }}
           export_default_credentials: true
 
-      - name: Run Deployment Script
+      - name: change the Scripts permission
         run: |
           echo "${{ secrets.ENV_FILE }}" > .env
           chmod +x ./start.sh ./n8n/deploy-n8n.sh
-          ./start.sh
-          ./n8n/deploy-n8n.sh
+
+      - name: Execute Deployment Scripts
+        run: bash start.sh && bash deploy-n8n.sh
+        working-directory: ${{ github.workspace }}
