@@ -73,7 +73,7 @@ echo "Deploying FastAPI to Cloud Run..."
     --project=$PROJECT_ID || echo "Already exists, skipping creation."
 
     gcloud run deploy $FASTAPI_SERVICE \
-    --source=./fastapi \
+    --source=./app \
     --region=$REGION \
     --platform=managed \
     --project=$PROJECT_ID \
