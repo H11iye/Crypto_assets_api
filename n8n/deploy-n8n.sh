@@ -1,13 +1,13 @@
-#! /bin/bash
+#!/usr/bin/env bash
 # this script enables APIs creates a cloud sql + user, secrets, and deploy n8n + FastAPI
 set -euo  pipefail
 # Load variables 
-# if [ -f .env ]; then
-export $(grep -v '^#' .env | xargs)
-# else
-#     echo ".env file not found!"
-#     exit 1
-# fi
+if [ -f .env ]; then
+  export $(grep -v '^#' .env | xargs)
+else
+    echo ".env file not found!"
+    exit 1
+fi
 
 echo "Enabling required GCP APIs..."
 gcloud services enable run.googleapis.com \
