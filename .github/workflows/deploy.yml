@@ -23,4 +23,4 @@ jobs:
         run: |
           echo "${{ secrets.ENV_FILE }}" > .env
           chmod +x ./start.sh
-          ./deploy-n8n.sh
+          ./n8n/deploy-n8n.sh
