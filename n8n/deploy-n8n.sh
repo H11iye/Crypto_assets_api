@@ -1,4 +1,5 @@
-#! this script enables APIs creates a cloud sql + user, secrets, and deploy n8n + FastAPI
+#! /bin/bash
+# this script enables APIs creates a cloud sql + user, secrets, and deploy n8n + FastAPI
 set -euo  pipefail
 # Load variables 
 # if [ -f .env ]; then
