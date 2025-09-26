@@ -40,3 +40,14 @@ venv/
 .pytest_cache/
 *.md
 !app/requirements.txt
+# Terraform state files
+*.tfstate
+*.tfstate.backup
+
+# Crash log
+crash.log
+
+# Terraform working directory
+
+.terraform/
+.terraform.lock.hcl

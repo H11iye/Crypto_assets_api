@@ -32,3 +32,15 @@ n8n uploads
 n8n/.n8n/
 Docker
 *.log
+
+# Terraform state files
+*.tfstate
+*.tfstate.backup
+
+# Crash log
+crash.log
+
+# Terraform working directory
+
+.terraform/
+.terraform.lock.hcl
