@@ -97,6 +97,7 @@ resource "google_cloud_run_v2_service" "service" {
     containers {
       
       image = "gcr.io/cloudrun/hello" # place holder
+      # image = "${var.REGION}-docker.pkg.dev/${var.PROJECT_ID}/${var.App_name}-repo/$"
     }
   }
 }
