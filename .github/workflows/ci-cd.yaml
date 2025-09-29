@@ -7,7 +7,7 @@ on:
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   REGION: ${{ secrets.GCP_REGION }}
-  APP_NAME: crypto-assets-with-mcp
+  APP_NAME: ${{ secrets.GCP_APP_NAME }}
   REPO_NAME: ${{ secrets.GCP_REPO_NAME }} 
 
 jobs:
@@ -51,7 +51,7 @@ jobs:
     # Build Docker image 
       - name: Build docker image
         run: |
-          IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.APP_NAME }}:${{ github.sha }}"
+          IMAGE="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_REPO_NAME }}/${{ secrets.GCP_APP_NAME }}:${{ github.sha }}"
           docker build -t $IMAGE .
           echo "IMAGE=$IMAGE" >> $GITHUB_ENV
 
