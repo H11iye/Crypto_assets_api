@@ -51,13 +51,13 @@ jobs:
     # Build Docker image 
       - name: Build docker image
         run: |
-          IMAGE="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_REPO_NAME }}/${{ secrets.GCP_APP_NAME }}:${{ github.sha }}"
+          IMAGE="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_REPO_NAME }}/${{ secrets.GCP_APP_NAME }}:latest"
           docker build -t $IMAGE .
           echo "IMAGE=$IMAGE" >> $GITHUB_ENV
 
     # Push Docker image to Artifact Registry
       - name: Push Docker image to Artifact Registry
-        run: docker push $IMAGE
+        run: docker push ${{ env.IMAGE }}
 
     # Deploy to Cloud Run
       - name: Deploy the image
