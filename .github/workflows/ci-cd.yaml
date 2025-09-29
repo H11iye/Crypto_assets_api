@@ -62,7 +62,7 @@ jobs:
     # Deploy to Cloud Run
       - name: Deploy the image
         run: |
-          gcloud run deploy Assets-${{ env.APP_NAME }} \
+          gcloud run deploy assets-${{ env.APP_NAME }} \
             --image ${{ env.IMAGE }} \
             --region ${{ env.REGION }} \
             --platform managed \
