@@ -7,7 +7,7 @@ on:
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   REGION: ${{ secrets.GCP_REGION }}
-  APP_NAME: ${{ secrets.GCP_APP_NAME }}
+  APP_NAME: crypto-assets-with-mcp
   REPO_NAME: ${{ secrets.GCP_REPO_NAME }} 
 
 jobs:
@@ -32,7 +32,7 @@ jobs:
       - name: Set up gcloud
         uses: google-github-actions/setup-gcloud@v2
         with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          project_id: ${{ env.PROJECT_ID }}
 
     # Verify gcloud authentication
       - name: Verify gcloud authentication
@@ -42,16 +42,16 @@ jobs:
     # Verify Artifact Registry access
 
       - name: Verify Artifact Registry access
-        run: gcloud artifacts repositories list --location=${{ secrets.GCP_REGION }}
+        run: gcloud artifacts repositories list --location=${{ env.REGION }}
 
       - name: Configure Docker auth for Artifact Registry
-        run: gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev --quiet
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
 
 
     # Build Docker image 
       - name: Build docker image
         run: |
-          IMAGE="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_REPO_NAME }}/${{ secrets.GCP_APP_NAME }}:latest"
+          IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.APP_NAME }}:${{ github.sha }}"
           docker build -t $IMAGE .
           echo "IMAGE=$IMAGE" >> $GITHUB_ENV
 
@@ -64,6 +64,6 @@ jobs:
         run: |
           gcloud run deploy Assets-${{ env.APP_NAME }} \
             --image ${{ env.IMAGE }} \
-            --region ${{ secrets.GCP_REGION }} \
+            --region ${{ env.REGION }} \
             --platform managed \
             --allow-unauthenticated
