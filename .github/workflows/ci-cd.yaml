@@ -57,7 +57,7 @@ jobs:
 
     # Push Docker image to Artifact Registry
       - name: Push Docker image to Artifact Registry
-        run: docker push ${{ env.IMAGE }}
+        run: docker push $IMAGE
 
     # Deploy to Cloud Run
       - name: Deploy the image
