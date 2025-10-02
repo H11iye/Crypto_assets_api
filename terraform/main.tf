@@ -1,19 +1,18 @@
-resource "google_project_service" "cloud_run" {
+# Enable Required APIs
+resource "google_project_service" "enabled" {
+  for_each = toset([
+    "run.googleapis.com",
+    "artifactregistry.googleapis.com",
+    "secretmanager.googleapis.com",
+    "sqladmin.googleapis.com",
+    "vpcaccess.googleapis.com"
+  ])
   project = var.PROJECT_ID
-  service = "run.googleapis.com"
+  service = each.key
 }
 
-resource "google_project_service" "artifact_registry" {
-  project = var.PROJECT_ID
-  service = "artifactregistry.googleapis.com"
-}
+# Networking
 
-resource "google_project_service" "secret_manager" {
-  project = var.PROJECT_ID
-  service = "secretmanager.googleapis.com"
-}
-
-# VPC + Subnet
 resource "google_compute_network" "vpc" {
   name = "${var.App_name}-vpc"
   auto_create_subnetworks = false
@@ -23,81 +22,207 @@ resource "google_compute_subnetwork" "subnet" {
   name = "${var.App_name}-subnet"
   ip_cidr_range = "10.0.0.0/24"
   region = var.REGION
-  network = google_compute_network.vpc.id 
+  network = google_compute_network.vpc.id
 }
 
-# Artifact Registry 
+# Artifact Registry
 
 resource "google_artifact_registry_repository" "repo" {
-  provider = google
   location = var.REGION
   repository_id = "${var.App_name}-repo"
-  description = "Crypto assets repository for cloud run"
+  description = "Docker repo for crypto API"
   format = "DOCKER"
 }
+#####################
+# Service Accounts
+#####################
 
-# Service account for CI/CD deployments (created by Terraform)
-resource "google_service_account" "Crypto_assets_MCP" {
-    account_id = "${var.App_name}-deploy"
-    display_name = "Crypto assets Service Account"
-  
+# Github Actions Deploy SA
+resource "google_service_account" "deploy_sa" {
+  account_id = "${var.App_name}-deploy"
+  display_name = "CI/CD Deploy Service Account"
 }
 
-# IAM bindings for the CI deployer SA
-
-resource "google_project_iam_member" "sa_run_admin" {
-  project = var.PROJECT_ID
-  role = "roles/run.admin"
-  member = "serviceAccount:${google_service_account.Crypto_assets_MCP.email}"
+# Runtime SA for Crypto API
+resource "google_service_account" "crypto_api_sa" {
+  account_id = "${var.App_name}-api-sa"
+  display_name = "n8n Service Account"
 }
 
-resource "google_project_iam_member" "sa_artifact_writer" {
-  project = var.PROJECT_ID
-  role = "roles/artifactregistry.writer"
-  member = "serviceAccount:${google_service_account.Crypto_assets_MCP.email}"
+# Runtime SA for n8n
+resource "google_service_account" "n8n_sa" {
+  account_id = "${var.App_name}-n8n-sa"
+  display_name = "n8n Service Account"
 }
 
-# Allow pushing image to Artifact Registry
-
-resource "google_project_iam_member" "sa_storage_admin" {
+#####################
+# IAM Bindings for Deploy SA
+#####################
+resource "google_project_iam_member" "deploy_roles" {
+  for_each = toset([
+    "roles/run.admin",
+    "roles/artifactregistry.writer",
+    "roles/secretmanager.secretAccessor",
+    "roles/iam.serviceAccountUser"
+  ])
   project = var.PROJECT_ID
-  role = "roles/storage.admin"
-  member = "serviceAccount:${google_service_account.Crypto_assets_MCP.email}"
+  role = each.key
+  member = "serviceAccount:${google_service_account.deploy_sa.email}"
 }
-# Allow accessing secrets 
 
-resource "google_project_iam_member" "sa_secret_accessor" {
+#####################
+# IAM for n8n SA (Cloud SQL access)
+#####################
+
+resource "google_project_iam_member" "n8n_sql_client" {
   project = var.PROJECT_ID
+  role = "roles/cloudsql.client"
+  member = "serviceAccount:${google_service_account.n8n_sa.email}"
+}
+
+#####################
+# Cloud SQL (Postgres for n8n)
+#####################
+
+resource "google_sql_database_instance" "n8n_db_instance" {
+  name = "${var.App_name}-n8n-db"
+  region = var.REGION
+  database_version = "POSTGRES_14"
+
+  settings {
+    tier = "db-f1-micro"
+    ip_configuration {
+      ipv4_enabled = false
+      private_network = google_compute_network.vpc.self_link
+      ssl_mode = "ENCRYPTED_ONLY"
+
+    }
+  }
+  deletion_protection = false
+  depends_on = [ google_project_service.enabled ]
+
+}
+
+resource "google_sql_database" "n8n_database" {
+  name = "n8n"
+  instance = google_sql_database_instance.n8n_db_instance.name
+}
+
+resource "google_sql_user" "n8n_user" {
+  name = "n8n_user"
+  instance = google_sql_database_instance.n8n_db_instance.name
+  password = var.N8N_DB_PASSWORD
+}
+
+
+################
+# Secrets (DB password + encryption key)
+################
+resource "google_secret_manager_secret" "n8n_db_password" {
+  secret_id = "${var.App_name}-n8n-db-password"
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret_version" "n8n_db_password_v" {
+  secret = google_secret_manager_secret.n8n_db_password.id
+  secret_data = var.N8N_DB_PASSWORD
+}
+
+resource "google_secret_manager_secret_iam_member" "n8n_secret_accessor" {
+  secret_id = google_secret_manager_secret.n8n_db_password.id
   role = "roles/secretmanager.secretAccessor"
-  member = "serviceAccount:${google_service_account.Crypto_assets_MCP.email}"
+  member = "serviceaccount:${google_service_account.n8n_sa.email}"
 }
 
-# Allow CI/CD pipeline SA to impersonate this SA
-
-resource "google_project_iam_member" "sa_impersonate" {
-  project = var.PROJECT_ID
-  role = "roles/iam.serviceAccountUser"
-  member = "serviceAccount:${google_service_account.Crypto_assets_MCP.email}"
-}
-# Make the Cloud Run service allow unauthenticated access
-resource "google_cloud_run_service_iam_member" "public_invoker" {
-  service = google_cloud_run_v2_service.service.name
-  location = var.REGION
-  role = "roles/run.invoker"
-  member = "allUsers"
-}
-
-# Cloud Run placeholder service 
-
-resource "google_cloud_run_v2_service" "service" {
-  name = var.App_name
+################
+# Cloud Run - Crypto API
+################
+resource "google_cloud_run_v2_service" "crypto_api" {
+  name = "${var.App_name}-api"
   location = var.REGION
 
   template {
+    service_account = google_service_account.crypto_api_sa.email
     containers {
-      
-      image = "gcr.io/cloudrun/hello" # place holder
-      # image = "${var.REGION}-docker.pkg.dev/${var.PROJECT_ID}/${var.App_name}-repo/$"
+      # Image will be pushed by GitHub Actions
+      image = "${var.REGION}-docker.pkg.dev/${var.PROJECT_ID}/${google_artifact_registry_repository.repo.repository_id}/${var.App_name}-api:latest"
+
     }
   }
+}
+
+resource "google_cloud_run_v2_service_iam_member" "crypto_api_public" {
+  name     = google_cloud_run_v2_service.crypto_api.name
+  location = var.REGION
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}
+
+################
+# Cloud Run - n8n
+################
+resource "google_cloud_run_v2_service" "n8n" {
+  name = "${var.App_name}-n8n"
+  location = var.REGION
+  template {
+    service_account = google_service_account.n8n_sa.email
+
+    containers {
+      image = "docker.n8n.io/n8nio/n8n:latest"
+
+      env {
+        name = "DB_TYPE"
+        value = "postgres"
+      }
+      env {
+        name = "DB_POSTGRESDB_DATABASE"
+        value = google_sql_database.n8n_database.name
+      }
+      env {
+        name = "DB_POSTGRESDB_USER"
+        value = google_sql_user.n8n_user.name
+      }
+
+      env {
+        name = "DB_POSTGRESDB_PASSWORD"
+        value_source {
+          secret_key_ref {
+            secret = google_secret_manager_secret.n8n_db_password.id
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "DB_POSTGRESDB_HOST"
+        value = "/cloudsql/${google_sql_database_instance.n8n_db_instance.connection_name}"
+      }
+
+      env {
+        name = "N8N_ENCRYPTION_KEY"
+        value = var.N8N_ENCRYPTION_KEY
+      }
+      
+      volume_mounts {
+        name = "cloudsql"
+        mount_path = "/cloudsql"
+      }
+    }
+
+    volumes {
+      name = "cloudsql"
+      cloud_sql_instance {
+        instances = [google_sql_database_instance.n8n_db_instance.connection_name]
+      }
+    }
+  }
+}
+
+resource "google_cloud_run_v2_service_iam_member" "n8n_public" {
+  name = google_cloud_run_v2_service.n8n.name
+  location = var.REGION
+  role = "roles/run.invoker"
+  member = "allUsers"
 }

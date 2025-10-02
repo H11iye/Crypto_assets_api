@@ -13,3 +13,13 @@ variable "App_name" {
   type = string
   default = "crypto-assets-with-mcp"
 }
+
+variable "N8N_DB_PASSWORD" {
+  type = string
+  sensitive = true
+}
+
+variable "N8N_ENCRYPTION_KEY" {
+  type = string
+  sensitive = true
+}
