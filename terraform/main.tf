@@ -150,7 +150,7 @@ resource "google_secret_manager_secret_version" "n8n_db_password_v" {
 resource "google_secret_manager_secret_iam_member" "n8n_secret_accessor" {
   secret_id = google_secret_manager_secret.n8n_db_password.id
   role = "roles/secretmanager.secretAccessor"
-  member = "serviceaccount:${google_service_account.n8n_sa.email}"
+  member = "serviceAccount:${google_service_account.n8n_sa.email}"
 }
 
 ################
