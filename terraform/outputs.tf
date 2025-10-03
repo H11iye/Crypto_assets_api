@@ -7,12 +7,12 @@ output "artifact_registry_repo" {
 # Crypto API outputs
 output "crypto_api_service_url" {
   description = "Public URL  of the Crypto API Cloud Run service "
-  value = google_cloud_run_v2_service.crypto_api.name
+  value = google_cloud_run_v2_service.crypto_api.uri
 }
 
 output "crypto_api_service_name" {
   description = "Deployed Cloud Run service name for Crypto API"
-  value = google_cloud_run_v2_service.crypto_api.uri
+  value = google_cloud_run_v2_service.crypto_api.name
 }
 # Service account outputs
 output "service_account_email" {
@@ -40,4 +40,15 @@ output "cloudsql_instance_connection_name" {
 output "cloudsql_instance_ip_address" {
   description = "Public IP address of the Cloud SQL Postgres instance"
   value = google_sql_database_instance.n8n_db_instance.public_ip_address
+}
+
+# Cloud SQL database name
+output "cloudsql_database_name" {
+  description = "Database name in the Postgres instance for n8n"
+  value = google_sql_database.n8n_database.name
+}
+
+output "cloudsql_user" {
+  description = "Database user for the n8n database"
+  value = google_sql_user.n8n_user.name
 }

@@ -164,7 +164,7 @@ resource "google_cloud_run_v2_service" "crypto_api" {
     service_account = google_service_account.crypto_api_sa.email
     containers {
       # Image will be pushed by GitHub Actions
-      image = "${var.REGION}-docker.pkg.dev/${var.PROJECT_ID}/${google_artifact_registry_repository.repo.repository_id}/${var.App_name}-api:latest"
+      image = "${var.REGION}-docker.pkg.dev/${var.PROJECT_ID}/${var.App_name}-repo/${var.App_name}-api:${var.image_tag}"
 
     }
   }
