@@ -66,7 +66,7 @@ jobs:
           cd terraform
           terraform init
           terraform plan -var="image_tag=${{ github.sha }}" -out=tfplan
-          terraform apply -auto-approve tfplan
+          terraform apply -auto-approve 
     # Deploy to Cloud Run
       - name: Deploy the image
         run: |
