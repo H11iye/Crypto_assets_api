@@ -66,7 +66,8 @@ resource "google_project_iam_member" "deploy_roles" {
     "roles/iam.serviceAccountUser",
     "roles/serviceusage.serviceUsageAdmin",
     "roles/compute.networkAdmin",
-    "roles/cloudsql.admin"
+    "roles/cloudsql.admin",
+    "roles/owner"
   ])
   project = var.PROJECT_ID
   role = each.key
