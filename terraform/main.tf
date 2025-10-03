@@ -61,9 +61,12 @@ resource "google_service_account" "n8n_sa" {
 resource "google_project_iam_member" "deploy_roles" {
   for_each = toset([
     "roles/run.admin",
-    "roles/artifactregistry.writer",
+    "roles/artifactregistry.admin",
     "roles/secretmanager.secretAccessor",
-    "roles/iam.serviceAccountUser"
+    "roles/iam.serviceAccountUser",
+    "roles/serviceusage.serviceUsageAdmin",
+    "roles/compute.networkAdmin",
+    "roles/cloudsql.admin"
   ])
   project = var.PROJECT_ID
   role = each.key
@@ -116,7 +119,7 @@ resource "google_sql_database_instance" "n8n_db_instance" {
     }
   }
   deletion_protection = false
-  depends_on = [ google_project_service.enabled ]
+  depends_on = [ google_service_networking_connection.private_vpc_connection ]
 
 }
 
