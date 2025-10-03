@@ -5,17 +5,20 @@ resource "google_project_service" "enabled" {
     "artifactregistry.googleapis.com",
     "secretmanager.googleapis.com",
     "sqladmin.googleapis.com",
-    "vpcaccess.googleapis.com"
+    "vpcaccess.googleapis.com",
+    "compute.googleapis.com",
+    "servicenetworking.googleapis.com"
   ])
   project = var.PROJECT_ID
   service = each.key
 }
 
-# Networking
+# Networking - Custom VPC
 
 resource "google_compute_network" "vpc" {
   name = "${var.App_name}-vpc"
   auto_create_subnetworks = false
+  description = "Custom VPC for ${var.App_name}"
 }
 
 resource "google_compute_subnetwork" "subnet" {
@@ -23,6 +26,36 @@ resource "google_compute_subnetwork" "subnet" {
   ip_cidr_range = "10.0.0.0/24"
   region = var.REGION
   network = google_compute_network.vpc.id
+
+  secondary_ip_range {
+    range_name = "pods"
+    ip_cidr_range = "10.1.0.0/16"
+    }
+  secondary_ip_range {
+    range_name = "pods"
+    ip_cidr_range = "10.2.0.0/16"
+  }
+}
+
+# Firewall rule to allow internal communication within the VPC
+
+resource "google_compute_firewall" "allow_internal" {
+  name = "${var.App_name}-allow-internal"
+  network = google_compute_network.vpc.name
+
+  allow {
+    protocol = "tcp"
+    ports = ["0-65535"]
+  }
+  allow {
+    protocol = "udp"
+    ports = ["0-65535"]
+  }
+  allow {
+    protocol = "icmp"
+  }
+
+  source_ranges = ["10.0.0.0/24", "10.1.0.0/16", "10.2.0.0/16"]
 }
 
 # Artifact Registry
@@ -30,8 +63,12 @@ resource "google_compute_subnetwork" "subnet" {
 resource "google_artifact_registry_repository" "repo" {
   location = var.REGION
   repository_id = "${var.App_name}-repo"
-  description = "Docker repo for crypto API"
+  description = "Docker repo for ${var.App_name}"
   format = "DOCKER"
+
+  docker_config {
+    immutable_tags = false
+  }
 }
 #####################
 # Service Accounts
@@ -61,13 +98,12 @@ resource "google_service_account" "n8n_sa" {
 resource "google_project_iam_member" "deploy_roles" {
   for_each = toset([
     "roles/run.admin",
-    "roles/artifactregistry.admin",
+    "roles/artifactregistry.writer",
     "roles/secretmanager.secretAccessor",
     "roles/iam.serviceAccountUser",
     "roles/serviceusage.serviceUsageAdmin",
     "roles/compute.networkAdmin",
-    "roles/cloudsql.admin",
-    "roles/owner"
+    "roles/cloudsql.admin"
   ])
   project = var.PROJECT_ID
   role = each.key

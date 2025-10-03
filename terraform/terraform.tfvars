@@ -1,3 +1,6 @@
 PROJECT_ID = "custom-cable-466509-g1"
 REGION = "us-central1"
 App_name = "crypto-assets-with-mcp"
+N8N_DB_PASSWORD = "LOKAloki_i11"
+N8N_ENCRYPTION_KEY = "1e063edf7dc14411dd5ef92c43a51c910aa6295d2810a21658101127943e996c"
+image_tag = "latest"

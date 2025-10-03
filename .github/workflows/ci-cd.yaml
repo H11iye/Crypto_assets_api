@@ -59,19 +59,19 @@ jobs:
       - name: Push Docker image to Artifact Registry
         run: docker push ${{ env.IMAGE }}
 
-    # Install Terraform CLI
-      - name: Install Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.9.7
+    # # Install Terraform CLI
+    #   - name: Install Terraform
+    #     uses: hashicorp/setup-terraform@v3
+    #     with:
+    #       terraform_version: 1.9.7
 
-    # Apply terraform configuration to deploy the exact image to Cloud Run
-      - name: Terraform Apply
-        run: |
-          cd terraform
-          terraform init
-          terraform plan -var="image_tag=${{ github.sha }}" -out=tfplan
-          terraform apply -auto-approve tfplan
+    # # Apply terraform configuration to deploy the exact image to Cloud Run
+    #   - name: Terraform Apply
+    #     run: |
+    #       cd terraform
+    #       terraform init
+    #       terraform plan -var="image_tag=${{ github.sha }}" -out=tfplan
+    #       terraform apply -auto-approve tfplan
         
     # Deploy to Cloud Run
       - name: Deploy the image
